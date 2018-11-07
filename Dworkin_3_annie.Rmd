@@ -1,0 +1,175 @@
+---
+title: "Dworkin_3_annie"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+##Q2
+#open file and name is rna_counts
+rna_counts <- read.csv("~/Downloads/eXpress_dm_counts.csv", header=T, row.names = 1)
+#create mean function
+col_mean <- function(df, column, use_log2 = FALSE){
+ #eliminate 0s from the data
+  if (use_log2 == TRUE) {
+   df[df == 0] <- NA
+ 	return (mean(log2(df[[column]]) ,na.rm = TRUE))
+ 	} else {
+ 	mean(df[[column]])
+ 	}
+}
+
+#test col_mean function when use_log2 = FALSE
+col_mean(rna_counts, 1)
+
+#test col_mean function when use_log2 = TRUE
+col_mean(rna_counts, 1, use_log2 = TRUE)
+```
+
+```{r}
+##Q3
+#open file and name is rna_counts
+Q3_start_time <- Sys.time()
+rna_counts <- read.csv("~/Downloads/eXpress_dm_counts.csv", header=T, row.names = 1)
+col_mean_vector <- c(numeric(ncol(rna_counts))) 
+names(col_mean_vector) <- colnames(rna_counts) 
+for (i in 1:length(rna_counts)) {
+  col_mean_vector[i] <- col_mean(rna_counts, i)
+}
+
+print(col_mean_vector)
+
+Q3_end_time <- Sys.time()
+
+Q3_time_difference <- (Q3_end_time - Q3_start_time)
+```
+
+```{r}
+## Q4
+Q4_start_time <- Sys.time()
+#open file and name is rna_counts
+rna_counts <- read.csv("~/Downloads/eXpress_dm_counts.csv", header=T, row.names = 1)
+#create mean function
+apply_mean <- function(df, use_log2 = FALSE){
+ if (use_log2 == TRUE) {
+   df[df == 0] <- NA
+ 	return (apply(log2(df),2, mean, na.rm = TRUE))
+ 	} else {
+ 	apply(df, 2, mean)
+ 	} 
+}
+
+Q4_end_time <- Sys.time()
+
+Q4_time_difference <- Q4_end_time - Q4_start_time
+time_difference <- (Q4_time_difference - Q3_time_difference)
+
+print(time_difference)
+
+if (time_difference > 0) {
+  print("Using apply is slower than col_mean function")
+} else {
+  print ("Using apply is faster than col_mean function")
+}
+  
+#Seems that apply works faster than the other method
+```
+
+```{r}
+## Q5
+# Quick way to get column means from all the columns
+rna_counts_colMeans <- colMeans(rna_counts)
+
+print(rna_counts_colMeans)
+```
+
+```{r}
+## Q6
+row_mean <- function(df, use_log2 = FALSE){
+  row_mean_vector <- vector()
+  for(i in 1: nrow(df)){
+    current_row_vector <- vector()
+    for (j in 1:length(df)) {
+      
+      if(df[i,j] == 0){
+        df[i,j] <- NA
+      }
+      current_row_vector<- c(current_row_vector, df[i,j])
+    }
+    
+    # Calculate Mean for the desired row
+    current_row_mean <- mean(current_row_vector, na.rm= TRUE)
+    
+    #If use_log2 is true, use log2 mean
+     if (use_log2 == TRUE) {
+      current_row_mean <- mean(log2(current_row_vector), na.rm = TRUE)
+    }
+    
+    # Store mean within vector variable
+    row_mean_vector <- c(row_mean_vector, current_row_mean)
+  }
+  
+  return(row_mean_vector)
+}
+
+#print row mean
+mean_row_output <- row_mean(rna_counts)
+print(mean_row_output)
+
+#print row mean log2
+mean_row_output_log2 <- row_mean(rna_counts, use_log2 = TRUE)
+print(mean_row_output_log2)
+
+```
+
+```{r}
+##Q7
+#Find mean of LgMaleHdHorn and SmMaleHdHorn
+lg_male_hdhorn <- rna_counts[c(30,33,45,53)]
+sm_male_hdhorn <- rna_counts[c(26,37,41,49)]
+
+library(reshape)
+m_lg_male_hdhorn <- melt(lg_male_hdhorn)
+m_sm_male_hdhorn <- melt(sm_male_hdhorn)                      
+
+mean_lg_male_hdhorn <- col_mean(m_lg_male_hdhorn, 2)
+
+mean_sm_male_hdhorn <- col_mean(m_sm_male_hdhorn, 2)
+
+#calculate the difference of the means
+mean_diff <- mean_lg_male_hdhorn - mean_sm_male_hdhorn
+
+print(mean_diff)
+```
+
+
+```{r}
+##Q8
+# Calculate difference in rows
+row_difference <- vector()
+for(i in 1: nrow(rna_counts)){
+  current_row_difference <- 0
+  
+  # Loop Through and initilize vector with all the rows values
+  for (j in 1:length(rna_counts)) {
+    current_row_difference <- current_row_difference - rna_counts[i,j]
+  }
+
+  
+  # Store mean within vector variable
+  row_difference <- c(row_difference, current_row_difference)
+}
+
+rowMean <- row_mean(rna_counts)
+rowMeanLog2 <- row_mean(rna_counts, use_log2 = TRUE)
+
+#plot the differences
+plot(rowMean, row_difference)
+plot(rowMeanLog2, row_difference)
+
+```
+
